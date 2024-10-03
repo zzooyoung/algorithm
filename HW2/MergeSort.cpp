@@ -7,15 +7,46 @@
 */
 #include <iostream>
 #include <ctime>
+#include <fstream>
+#include <string>
+#include <vector>
+
 using namespace std;
 
-int main(){
-    clock_t start, finish;
-    double duration;
-    start = clock();
-    finish = clock();
-    duration = (double)(finish - start) / CLOCKS_PER_SEC;
-    cout << duration << "초" << endl;
-
-    return 0;
+void MERGESORT(int arr[], int left, int right) {
+    
 }
+
+int main(){
+    struct timespec begin, end ;
+    clock_gettime(CLOCK_MONOTONIC, &begin);
+    string line;
+    ifstream file("input_sort.txt");
+
+    vector<int> v;
+
+    if(file.is_open()){
+        while(getline(file, line)) {
+            int intLine = stoi(line);
+            v.emplace_back(intLine);
+        }
+    } else {  
+        cout << "파일 열기를 실패 했습니다.";
+        // 프로그램 종료 
+    }
+
+    int vSize = v.size();
+    int* intInput = new int[vSize];
+
+    for (int i = 0; i < vSize; ++i) {
+        intInput[i] = v[i];
+    }
+
+
+
+
+
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    cout << "실행 시각 :";
+    cout << (end.tv_sec - begin.tv_sec) + (end.tv_nsec - begin.tv_nsec) / 1000000000.0 << endl;
+    }

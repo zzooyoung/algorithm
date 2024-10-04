@@ -107,6 +107,7 @@ int main(){
     delete[] intInput;
 
     clock_gettime(CLOCK_MONOTONIC, &end);
-    cout << "실행 시각 :";
-    cout << (end.tv_sec - begin.tv_sec) + (end.tv_nsec - begin.tv_nsec) / 1000000000.0 << endl;
+    cout << "Execution time :";
+    cout << (end.tv_sec - begin.tv_sec) + (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
+    cout << " seconds" << endl;
     }

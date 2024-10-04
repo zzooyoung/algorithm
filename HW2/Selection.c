@@ -5,13 +5,14 @@
     Selection algorithm을 구현하여 50번째와 70번째 숫자를 출력
 */
 
+// Heading Commnets
 #include <stdio.h>
 #include <time.h>
 
-#define SIZE 1000 // 배열 크기 설정 (파일에 들어 있는 데이터 수에 맞게 설정)
+#define SIZE 1000 // 배열 크기 설정 (기본 1000)
 
-int PARTITION(int arr[], int left, int right) {
-    int pivot = arr[right];
+int SWAPPING(int arr[], int left, int right) {
+    int pivot = arr[right]; // 배열 가장 오른쪽을 Pivot 으로 설정 
     int i = left - 1;
 
     for(int j = left; j < right; j++) {
@@ -29,12 +30,12 @@ int PARTITION(int arr[], int left, int right) {
     arr[right] = temp;
     return i + 1;
 }
-
+// Selection 수행 함수 
 int SELECTION(int arr[], int left, int right, int k) {
     if(left == right) {
         return arr[left];
     }
-    int p = PARTITION(arr, left, right);
+    int p = SWAPPING(arr, left, right);
     int S = p - left + 1;
 
     if(k == S) {
@@ -46,6 +47,7 @@ int SELECTION(int arr[], int left, int right, int k) {
     }
 }
 
+// Main 함수 
 int main() {
     // 시작 시간 측정
     clock_t start = clock();
@@ -57,14 +59,14 @@ int main() {
         return 0;
     }
 
-    // 파일에서 숫자 읽어오기
+
     int intInput[SIZE];
     int count = 0;
 
     while (fscanf(fs, "%d", &intInput[count]) != EOF && count < SIZE) {
         count++;
     }
-    fclose(fs); // 파일을 닫음
+    fclose(fs);
 
     // 정렬 전 데이터 개수 확인
     if (count < 70) {
@@ -75,17 +77,13 @@ int main() {
     int result50 = SELECTION(intInput, 0, count - 1, 50);
     int result70 = SELECTION(intInput, 0, count - 1, 70);
 
-    // 50번째와 70번째 숫자 출력 (인덱스는 0부터 시작하므로 49번째, 69번째)
+    // 50번째와 70번째 숫자 출력 
     printf("the 50th number: %d\n", result50);
     printf("the 70th number: %d\n", result70);
 
     // 종료 시간 측정
     clock_t end = clock();
-
-    // 경과 시간 계산
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-
-    // 경과 시간 출력 (초 단위)
     printf("Execution time: %f seconds\n", time_spent);
 
     return 0;

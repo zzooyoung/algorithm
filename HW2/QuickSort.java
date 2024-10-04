@@ -22,7 +22,7 @@ public class QuickSort {
     
     // Partition 함수: 피벗을 기준으로 배열을 분할
     public static int partition(int[] arr, int left, int right) {
-        int pivot = arr[right];  // 가장 오른쪽 요소를 피벗으로 설정
+        int pivot = arr[right];  // 가장 오른쪽 요소를 Pivot으로 설정
         int i = left - 1;
 
         for (int j = left; j < right; j++) {
@@ -35,7 +35,7 @@ public class QuickSort {
             }
         }
     
-        // arr[i+1]과 피벗을 교환
+        // arr[i+1]과 Pivot을 교환
         int temp = arr[i + 1];
         arr[i + 1] = arr[right];
         arr[right] = temp;
@@ -49,7 +49,7 @@ public class QuickSort {
         List<Integer> list = new ArrayList<>();
 
         // 상대 경로를 위한 Working Dir Path
-        String path = System.getProperty("user.dir") + File.separator + "HW2" + File.separator;
+        String path = System.getProperty("user.dir") + File.separator;
 
         System.out.println("Working directory: " + path);
     
@@ -61,7 +61,6 @@ public class QuickSort {
             }
         } catch (IOException e) {
             System.out.println("Failed to open the file.");
-            e.printStackTrace();
             return;
         }
         
@@ -78,7 +77,6 @@ public class QuickSort {
             }
         } catch (IOException e) {
             System.out.println("Failed to write the file.");
-            e.printStackTrace();
             return;
         }
     

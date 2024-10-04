@@ -6,13 +6,13 @@
     Merge sort를 구현하여 올림차순으로 정렬 후 output_merge_sort.xlsx (or output_merge_sort.txt) 파일 출력
 */
 
-// Heading Commmnets
+// Heading Commnets
 #include <iostream>
 #include <ctime>
 #include <fstream>
 #include <string>
 #include <vector>
-
+#include <cmath>
 using namespace std;
 
 void MERGE(int arr[], int left, int mid, int right) {
@@ -59,7 +59,7 @@ void MERGE(int arr[], int left, int mid, int right) {
 
 void MERGESORT(int arr[], int left, int right) {
     if (left < right) {
-        int mid = left + (right - left) / 2; // 이 식은 꼭 수정하기
+        int mid = (left + right) / 2; 
 
         MERGESORT(arr, left, mid);
         MERGESORT(arr, mid + 1, right);
@@ -69,13 +69,17 @@ void MERGESORT(int arr[], int left, int right) {
 }
 
 int main(){
+    // 실행 시간 시작 
     struct timespec begin, end ;
     clock_gettime(CLOCK_MONOTONIC, &begin);
+
+    
     string line;
     ifstream file("input_sort.txt");
 
     vector<int> v;
 
+    // 파일 읽기 
     if(file.is_open()){
         while(getline(file, line)) {
             int intLine = stoi(line);
@@ -96,6 +100,8 @@ int main(){
 
     MERGESORT(intInput, 0, vSize - 1);
 
+
+    // 파일 쓰기 
     ofstream outFile("output_merge_sort.txt");
     if (outFile.is_open()) {
         for (int i = 0; i <vSize; i++) {
@@ -106,8 +112,10 @@ int main(){
         cout << "Failed to write the file" << endl;
     }
 
+    // 메모리 반환 
     delete[] intInput;
 
+    // 결과 출력
     clock_gettime(CLOCK_MONOTONIC, &end);
     cout << "Execution time : ";
     cout << (end.tv_sec - begin.tv_sec) + (end.tv_nsec - begin.tv_nsec) / 1000000000.0;

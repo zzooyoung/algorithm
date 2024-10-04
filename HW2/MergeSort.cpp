@@ -5,6 +5,8 @@
     input_sort.txt 파일을 입력 데이터로 설정
     Merge sort를 구현하여 올림차순으로 정렬 후 output_merge_sort.xlsx (or output_merge_sort.txt) 파일 출력
 */
+
+// Heading Commmnets
 #include <iostream>
 #include <ctime>
 #include <fstream>
@@ -81,7 +83,7 @@ int main(){
         }
         file.close();
     } else {  
-        cout << "파일 열기를 실패 했습니다.";
+        cout << "Failed to open the file.";
         // 프로그램 종료 
     }
 
@@ -101,13 +103,13 @@ int main(){
         }
         outFile.close();
     } else {
-        cout << "파일 쓰기 실패" << endl;
+        cout << "Failed to write the file" << endl;
     }
 
     delete[] intInput;
 
     clock_gettime(CLOCK_MONOTONIC, &end);
-    cout << "Execution time :";
+    cout << "Execution time : ";
     cout << (end.tv_sec - begin.tv_sec) + (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
     cout << " seconds" << endl;
     }

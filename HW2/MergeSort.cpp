@@ -13,8 +13,57 @@
 
 using namespace std;
 
+void MERGE(int arr[], int left, int mid, int right) {
+    int tmpLSize = mid - left + 1;
+    int tmpRSize = right - mid;
+
+    int* tmpLeft = new int[tmpLSize];
+    int* tmpRight = new int[tmpRSize];
+
+    for(int i = 0; i < tmpLSize; i++) {
+        tmpLeft[i] = arr[left + i];
+    }
+    for(int j = 0; j < tmpRSize; j++) {
+        tmpRight[j] = arr[mid+1+j];
+    }
+
+    int leftCount = 0, rightCount = 0, count = left;
+    while (leftCount < tmpLSize && rightCount < tmpRSize) {
+        if (tmpLeft[leftCount] <= tmpRight[rightCount]){
+            arr[count] = tmpLeft[leftCount];
+            leftCount++;
+        }
+        else {
+            arr[count] = tmpRight[rightCount];
+            rightCount++;
+        }
+        count++;
+    }
+
+    while(leftCount < tmpLSize) {
+        arr[count] = tmpLeft[leftCount];
+        leftCount++;
+        count++;
+    }
+    while(rightCount < tmpRSize) {
+        arr[count] = tmpRight[rightCount];
+        rightCount++;
+        count++;
+    }
+
+    delete[] tmpLeft;
+    delete[] tmpRight;
+}
+
 void MERGESORT(int arr[], int left, int right) {
-    
+    if (left < right) {
+        int mid = left + (right - left) / 2; // 이 식은 꼭 수정하기
+
+        MERGESORT(arr, left, mid);
+        MERGESORT(arr, mid + 1, right);
+
+        MERGE(arr, left, mid, right);
+    }
 }
 
 int main(){
@@ -30,6 +79,7 @@ int main(){
             int intLine = stoi(line);
             v.emplace_back(intLine);
         }
+        file.close();
     } else {  
         cout << "파일 열기를 실패 했습니다.";
         // 프로그램 종료 
@@ -42,9 +92,19 @@ int main(){
         intInput[i] = v[i];
     }
 
+    MERGESORT(intInput, 0, vSize - 1);
 
+    ofstream outFile("output_merge_sort.txt");
+    if (outFile.is_open()) {
+        for (int i = 0; i <vSize; i++) {
+            outFile << intInput[i] <<endl;
+        }
+        outFile.close();
+    } else {
+        cout << "파일 쓰기 실패" << endl;
+    }
 
-
+    delete[] intInput;
 
     clock_gettime(CLOCK_MONOTONIC, &end);
     cout << "실행 시각 :";

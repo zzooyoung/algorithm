@@ -1,11 +1,3 @@
-#############################################################
-# File Name : Closest_Pair.py
-# Description : 알고리즘 HW2 과제 중 4. Closest Pair Algorithm 구현입니다.
-# input_closest_pair_under3ir.txt 파일을 입력 데이터로 설정
-# Closest Pair algorithm을 통해 가장 짧은 거리를 가진 좌표의 쌍을 찾고 그 최단 거리를 출력
-# O(nlogn)의 복잡도로 구현
-############################################################
-
 import math
 
 # 두 점 사이의 거리 계산 함수
@@ -34,7 +26,7 @@ def closest_split_pair(S, d, best_pair):
     n = len(in_strip)
 
     for i in range(n):
-        for j in range(i + 1, n):  
+        for j in range(i + 1, min(i + 7, n)):  # 점이 최대 6개 이하만 비교
             d = dist(in_strip[i], in_strip[j])
             if d < min_dist:
                 min_dist = d
@@ -60,7 +52,10 @@ def closest_pair(S):
 
     pair_C, dist_C = closest_split_pair(S, d, best_pair)
     
-    return min([pair_L, pair_R, pair_C], key=lambda x: dist(x[0], x[1]))
+    if dist_C < d:
+        return pair_C, dist_C
+    else:
+        return best_pair, d
 
 # 파일로부터 좌표 읽어오기
 def read_points_from_file(file_path):
@@ -71,9 +66,16 @@ def read_points_from_file(file_path):
             points.append((x, y))
     return points
 
+# 중복된 좌표를 제거하는 함수
+def remove_duplicates(points):
+    return list(set(points))  # 중복된 좌표를 제거하기 위해 set으로 변환 후 다시 리스트로 변환
+
 # 입력 파일 설정 및 좌표 읽어오기
 file_path = './input_closest_pair.txt'
 points = read_points_from_file(file_path)
+
+# 중복 좌표 제거
+points = remove_duplicates(points)
 
 # x-좌표 기준으로 정렬
 points.sort(key=lambda p: p[0])
@@ -82,3 +84,4 @@ points.sort(key=lambda p: p[0])
 closest_points, min_distance = closest_pair(points)
 print("가장 가까운 두 점:", closest_points)
 print("최단 거리:", min_distance)
+

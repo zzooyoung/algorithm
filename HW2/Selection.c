@@ -1,9 +1,19 @@
+/*
+    File Name : MergeSort.cpp
+    Description : 알고리즘 HW2 과제 중 3. Selection algorithm 구현 입니다. 
+
+    input_sort.txt 파일을 입력 데이터로 설정
+    50번째와 70번째를 찾아서 출력 
+*/
+
+// Heading Commnets
 #include <stdio.h>
 #include <time.h>
 
-#define SIZE 1000 // 배열 크기 설정 (기본 1000)
+#define SIZE 1000 // 입력 사이즈의 여유를 위한 사이즈 
 
-// SWAPPING 함수 수정 (오름차순을 위한 비교 수정)
+
+// SWAPPING 을 위한 함수
 int SWAPPING(int arr[], int left, int right) {
     int pivot = arr[right]; // 배열 가장 오른쪽을 Pivot 으로 설정
     int i = left - 1;
@@ -25,29 +35,29 @@ int SWAPPING(int arr[], int left, int right) {
 }
 
 // Selection 수행 함수
-int SELECTION(int arr[], int left, int right, int k) {
+int SELECTION(int arr[], int left, int right, int target) {
     if (left == right) {
         return arr[left];
     }
-    int p = SWAPPING(arr, left, right);
-    int S = p - left + 1;
+    int pivot = SWAPPING(arr, left, right);
+    int leftSize = pivot - left + 1;
 
-    if (k == S) {
-        return arr[p]; // Pivot 위치가 우리가 찾는 위치일 때
-    } else if (k < S) {
-        return SELECTION(arr, left, p - 1, k); // 왼쪽 부분 배열에서 찾기
+    if (target == leftSize) {
+        return arr[pivot]; // 바로 찾았다면
+    } else if (target < leftSize) {
+        return SELECTION(arr, left, pivot - 1, target); // 왼쪽 부분에서 찾기
     } else {
-        return SELECTION(arr, p + 1, right, k - S); // 오른쪽 부분 배열에서 찾기
+        return SELECTION(arr, pivot + 1, right, target - leftSize); // 오른쪽 부분에서 찾기 
     }
 }
 
-// Main 함수
+// Main
 int main() {
     // 시작 시간 측정
     clock_t start = clock();
 
     // 파일 열기
-    FILE *fs = fopen("input_sort.txt", "r");
+    FILE *fs = fopen("./input_sort.txt", "r");
     if (fs == NULL) {
         printf("Failed to open input_sort.txt\n");
         return 0;
@@ -56,7 +66,7 @@ int main() {
     int intInput[SIZE];
     int count = 0;
 
-    // 파일에서 데이터 읽기
+    // 파일에서 데이터 읽기ㅇ
     while (fscanf(fs, "%d", &intInput[count]) != EOF && count < SIZE) {
         count++;
     }

@@ -1,24 +1,22 @@
-/*
-    File Name : MergeSort.cpp
-    Description : 알고리즘 HW2 과제 중 3. Selection algorithm 구현 입니다. 
-
-    input_sort.txt 파일을 입력 데이터로 설정
-    50번째와 70번째를 찾아서 출력 
-*/
-
-// Heading Commnets
+#include <stdlib.h> // 랜덤 함수를 사용하기 위한 헤더 파일
 #include <stdio.h>
 #include <time.h>
+#define SIZE 1000 // 입력 사이즈의 여유를 위한 사이즈
 
-#define SIZE 1000 // 입력 사이즈의 여유를 위한 사이즈 
-
-
-// SWAPPING 을 위한 함수
+// SWAPPING 을 위한 함수 
 int SWAPPING(int arr[], int left, int right) {
-    int pivot = arr[right]; // 배열 가장 오른쪽을 Pivot 으로 설정
-    int i = left - 1;
+    // 랜덤으로 Pivot 선택
+    int randomIndex = left + rand() % (right - left + 1); 
 
-    for (int j = left; j < right; j++) {
+    // Pivot과 가장 왼쪽 값(left)을 교환
+    int temp = arr[randomIndex];
+    arr[randomIndex] = arr[left];
+    arr[left] = temp;
+
+    int pivot = arr[left]; // 배열 가장 왼쪽을 Pivot으로 설정
+    int i = left;
+
+    for (int j = left + 1; j <= right; j++) {
         if (arr[j] <= pivot) { // Pivot 기준으로 작거나 같은 경우 처리
             i++;
             int temp = arr[i];
@@ -28,10 +26,11 @@ int SWAPPING(int arr[], int left, int right) {
     }
 
     // Pivot을 올바른 위치로 이동
-    int temp = arr[i + 1];
-    arr[i + 1] = arr[right];
-    arr[right] = temp;
-    return i + 1;
+    temp = arr[i];
+    arr[i] = arr[left];
+    arr[left] = temp;
+
+    return i; // Pivot의 최종 위치 반환
 }
 
 // Selection 수행 함수
@@ -55,6 +54,7 @@ int SELECTION(int arr[], int left, int right, int target) {
 int main() {
     // 시작 시간 측정
     clock_t start = clock();
+    srand(time(NULL)); // 랜덤 시드 설정
 
     // 파일 열기
     FILE *fs = fopen("./input_sort.txt", "r");
@@ -66,7 +66,7 @@ int main() {
     int intInput[SIZE];
     int count = 0;
 
-    // 파일에서 데이터 읽기ㅇ
+    // 파일에서 데이터 읽기
     while (fscanf(fs, "%d", &intInput[count]) != EOF && count < SIZE) {
         count++;
     }
@@ -78,7 +78,7 @@ int main() {
         return 0;
     }
 
-    // SELECTION 알고리즘을 이용해 50번째와 70번째 숫자 찾기
+    // SELECTION 함수을 이용해 50번째와 70번째 숫자 찾기
     int result50 = SELECTION(intInput, 0, count - 1, 50);
     int result70 = SELECTION(intInput, 0, count - 1, 70);
 

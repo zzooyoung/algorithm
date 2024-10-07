@@ -48,13 +48,16 @@ def closest_split_pair(points, min_dist, best_pair):
 def closest_pair(points):
     num_points = len(points)
     
+    # if(i <= 3) return (2 or 3개의 점들 사이의 최근접 쌍)
     if num_points <= 3:
         return find_under_3(points)
     
+    # 정렬된 S를 같은 크기의 SL 과 SR로 분할
     mid = num_points // 2
     left_half_points = points[:mid]
     right_half_points = points[mid:]
 
+    
     closest_pair_left, min_distance_left = closest_pair(left_half_points)
     closest_pair_right, min_distance_right = closest_pair(right_half_points)
 
@@ -70,7 +73,7 @@ def closest_pair(points):
 
 # 중복된 좌표를 제거하는 함수
 def RM_DUP(points):
-    return list(set(points))  # 중복된 좌표를 제거하기 위해 set으로 변환 후 다시 리스트로 변환
+    return list(set(points))  # 중복된 좌표를 제거
 
 # 실행 시간 측정을 위한 시작 함수
 start_time = time.time()

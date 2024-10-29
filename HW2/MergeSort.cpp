@@ -15,6 +15,7 @@
 #include <cmath>
 using namespace std;
 
+// 합병을 위한 함수 
 void MERGE(int arr[], int left, int mid, int right) {
     int tmpLSize = mid - left + 1;
     int tmpRSize = right - mid;
@@ -57,6 +58,7 @@ void MERGE(int arr[], int left, int mid, int right) {
     delete[] tmpRight;
 }
 
+// Merge Sort 실행 함수
 void MERGESORT(int arr[], int left, int right) {
     if (left < right) {
         int mid = (left + right) / 2; 
@@ -88,6 +90,7 @@ int main(){
         file.close();
     } else {  
         cout << "Failed to open the file.";
+        exit(0);
         // 프로그램 종료 
     }
 

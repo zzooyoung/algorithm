@@ -44,7 +44,7 @@ def closest_split_pair(points, min_dist, best_pair):
     return best_pair, min_dist
 
 
-# 분할정복으로 가장 가까운 쌍을 찾는 메인 함수
+# 가장 가까운 쌍을 찾는 메인 함수
 def closest_pair(points):
     num_points = len(points)
     

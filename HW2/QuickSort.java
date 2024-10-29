@@ -21,7 +21,7 @@ public class QuickSort {
         } 
     }
     
-    // Partition 함수: 피벗을 기준으로 배열을 분할
+    // Pivot을 기준으로 배열을 분할
     public static int partition(int[] arr, int left, int right) {
         int pivot = arr[right];  // 가장 오른쪽 요소를 Pivot으로 설정
         int i = left - 1;
@@ -29,7 +29,7 @@ public class QuickSort {
         for (int j = left; j < right; j++) {
             if (arr[j] < pivot) {
                 i++;
-                // arr[i]와 arr[j] 교환
+
                 int temp = arr[i];
                 arr[i] = arr[j];
                 arr[j] = temp;
@@ -49,7 +49,7 @@ public class QuickSort {
     
         List<Integer> list = new ArrayList<>();
 
-        // 상대 경로를 위한 Working Dir Path
+        // 상대 경로를 위한 Working Dir Path - 상대경로 오류 발생으로 인한
         String path = System.getProperty("user.dir") + File.separator;
 
         System.out.println("Working directory: " + path);

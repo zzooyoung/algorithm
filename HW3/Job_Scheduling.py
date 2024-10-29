@@ -52,10 +52,10 @@ for i in range(len(machines)):
 print("time     ", end="")
 for t in range(10):
     print(f"{t:>3}", end="")
-print()
+print() # Line
 
 for i in range(len(time_table) - 1, -1, -1):
     print(f"Machine {i + 1}", end=" ")
     for cell in time_table[i]:
         print(f"{cell:>3}", end="")
-    print()
+    print() # Line

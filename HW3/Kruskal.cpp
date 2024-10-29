@@ -13,106 +13,117 @@
 
 // Heading Commnets
 #include <iostream>
-#include <ctime>
 #include <vector>
-#include <cmath>
 #include <algorithm>
+#include <ctime>
+#include <set>
+#include <chrono>
+
 using namespace std;
 
-// Struct for Edge
+// Struct 
 struct Edge {
     int src, dest, weight;
 };
 
+// global vector for edge list
 vector<Edge> edges;
 
-// Find Parent
-int find(vector<int>& parent, int t) {
-    if(parent[i] != i){
+// Find root 
+int find(vector<int>& parent, int i) {
+    if (parent[i] != i)
         parent[i] = find(parent, parent[i]);
-    }
     return parent[i];
 }
 
-// Union
-void Union(vector<int>& parent, vector<int>& rank, int x, int y) {
-    int x_root = find(parent, x);
-    int y_root = find(parent, y);
+// Using Union-Find for seek cycle
+void Union(vector<int>& parent, vector<int>& rank, int a, int b) {
+    int a_root = find(parent, a);
+    int b_root = find(parent, b);
 
-    if (rank[x_root] < rank[y_root]){
-        parent[x_root] = y_root;
-    } else if (rank[x_root] > rank[y_root]) {
-        parent[y_root] = x_root;
+    if (rank[a_root] < rank[b_root]) {
+        parent[a_root] = b_root;
+    } else if (rank[a_root] > rank[b_root]) {
+        parent[b_root] = a_root;
     } else {
-        parent[y_root] = x_root;
-        rank[x_root]++;
+        parent[b_root] = a_root;
+        rank[a_root]++;
     }
 }
 
-// Kruskal Function
+// find MST using kruskal 
 vector<Edge> kruskal(int vertex) {
-    vector<Edge> result;
+    vector<Edge> result;  // Result MST vector
+
+    // soring edges by weight, using lambda Func
     sort(edges.begin(), edges.end(), [](Edge a, Edge b) {
         return a.weight < b.weight;
     });
 
-    //Union-Find
+    // for find cycle
     vector<int> parent(vertex);
     vector<int> rank(vertex, 0);
-    for (int v = 0; v < vertex; ++v){
+    for (int v = 0; v < vertex; ++v)
         parent[v] = v;
-    }
-    int edge = 0;
+
+    int e_count = 0;
     int idx = 0;
-    while (edge < vertex - 1 && idx < edges.size()) {
-        Edge next_edge = edges[i++];
+    while (e_count < vertex - 1 && idx < edges.size()) {
+        Edge next_edge = edges[idx++];
 
         int x = find(parent, next_edge.src);
         int y = find(parent, next_edge.dest);
 
+        // don't cycle
         if (x != y) {
             result.push_back(next_edge);
             Union(parent, rank, x, y);
-            e++;
+            e_count++;
         }
     }
+
     return result;
 }
 
-int main(){
-    // 실행 시간 시작 
-    struct timespec begin, end;
-    clock_gettime(CLOCK_MONOTONIC, &begin);
+int main() {
 
-    // Vertex amount
+    auto start = chrono::high_resolution_clock::now();  
+
+    // vertex amount
     int vertex = 6;
 
-    // 입력: (a:0, b:1, c:2, d:3, e:4, f:5)
+    // input Edges (a:0, b:1, c:2, d:3, e:4, f:5)
     edges.push_back({0, 1, 8});
     edges.push_back({0, 3, 2});
     edges.push_back({0, 4, 4});
     edges.push_back({1, 2, 1});
     edges.push_back({1, 3, 4});
+    edges.push_back({1, 5, 2});
     edges.push_back({2, 5, 1});
     edges.push_back({3, 4, 3});
     edges.push_back({3, 5, 7});
     edges.push_back({4, 5, 9});
-    edges.push_back({2, 3, 2});
+    
+    
 
+
+    // Use kruskal
     vector<Edge> mst = kruskal(vertex);
 
+    // end clock
+    auto end = chrono::high_resolution_clock::now();  // 끝 시간 측정
 
-    // 결과 출력
+    // print result
     cout << "Minimum Spanning Tree:" << endl;
     for (auto& edge : mst) {
         cout << "(" << edge.src << ", " << edge.dest << ", " << edge.weight << ")" << endl;
     }
-    
-    // 실행 시간 출력
-    clock_gettime(CLOCK_MONOTONIC, &end);
-    cout << "Execution time : ";
-    cout << (end.tv_sec - begin.tv_sec) + (end.tv_nsec - begin.tv_nsec) / 1000000000.0;
-    cout << " seconds" << endl;
+
+    // print Execution time 
+
+
+    chrono::duration<double> duration = end - start;
+    cout << "Execution time: " << duration.count() << " seconds" << endl;
 
     return 0;
 }

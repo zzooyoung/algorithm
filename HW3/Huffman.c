@@ -1,28 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
-#define FILENAME "Huffman_input.txt"
 #define MAX_TREE_HT 100
 #define CHAR_SET_SIZE 256
 
-// 빈도수를 저장하는 배열
+// to save frequency
 int frequency[CHAR_SET_SIZE] = {0};
 
-// 허프만 코드를 저장할 문자열 배열
+// to save huffman code
 char codeA[MAX_TREE_HT] = "";
 char codeT[MAX_TREE_HT] = "";
 char codeG[MAX_TREE_HT] = "";
 char codeC[MAX_TREE_HT] = "";
 
-// 구조체 정의: 허프만 트리의 노드
+// Huffman Tree Node
 struct MinHeapNode {
     char data;
     unsigned freq;
     struct MinHeapNode *left, *right;
 };
 
-// 노드 생성 함수
+
 struct MinHeapNode* createNode(char data, unsigned freq) {
     struct MinHeapNode* node = (struct MinHeapNode*)malloc(sizeof(struct MinHeapNode));
     node->data = data;
@@ -31,7 +31,7 @@ struct MinHeapNode* createNode(char data, unsigned freq) {
     return node;
 }
 
-// 파일에서 빈도수 계산
+// calculataion frequency
 void calculateFrequency(const char *filename) {
     FILE *file = fopen(filename, "r");
     if (!file) {
@@ -47,14 +47,14 @@ void calculateFrequency(const char *filename) {
     fclose(file);
 }
 
-// 최소 힙 구조체
+
 struct MinHeap {
     unsigned size;
     unsigned capacity;
     struct MinHeapNode **array;
 };
 
-// 최소 힙 생성 함수
+
 struct MinHeap* createMinHeap(unsigned capacity) {
     struct MinHeap* minHeap = (struct MinHeap*)malloc(sizeof(struct MinHeap));
     minHeap->size = 0;
@@ -63,14 +63,14 @@ struct MinHeap* createMinHeap(unsigned capacity) {
     return minHeap;
 }
 
-// 두 노드 교환 함수
+// Swap
 void swapNodes(struct MinHeapNode** a, struct MinHeapNode** b) {
     struct MinHeapNode* temp = *a;
     *a = *b;
     *b = temp;
 }
 
-// 최소 힙 유지 함수
+
 void minHeapify(struct MinHeap* minHeap, int idx) {
     int smallest = idx;
     int left = 2 * idx + 1;
@@ -88,7 +88,7 @@ void minHeapify(struct MinHeap* minHeap, int idx) {
     }
 }
 
-// 최소 노드 추출 함수
+// min Heap Node
 struct MinHeapNode* extractMin(struct MinHeap* minHeap) {
     struct MinHeapNode* temp = minHeap->array[0];
     minHeap->array[0] = minHeap->array[minHeap->size - 1];
@@ -97,7 +97,6 @@ struct MinHeapNode* extractMin(struct MinHeap* minHeap) {
     return temp;
 }
 
-// 노드 삽입 함수
 void insertMinHeap(struct MinHeap* minHeap, struct MinHeapNode* node) {
     ++minHeap->size;
     int i = minHeap->size - 1;
@@ -108,12 +107,11 @@ void insertMinHeap(struct MinHeap* minHeap, struct MinHeapNode* node) {
     minHeap->array[i] = node;
 }
 
-// 단일 노드 확인 함수
 int isSizeOne(struct MinHeap* minHeap) {
     return (minHeap->size == 1);
 }
 
-// 최소 힙 생성 및 초기화 함수
+// MinHeap Func
 struct MinHeap* buildMinHeap(char data[], int freq[], int size) {
     struct MinHeap* minHeap = createMinHeap(size);
     for (int i = 0; i < size; ++i)
@@ -124,7 +122,7 @@ struct MinHeap* buildMinHeap(char data[], int freq[], int size) {
     return minHeap;
 }
 
-// 허프만 트리 구축 함수
+// Build Tree
 struct MinHeapNode* buildHuffmanTree(char data[], int freq[], int size) {
     struct MinHeapNode *left, *right, *top;
     struct MinHeap* minHeap = buildMinHeap(data, freq, size);
@@ -140,15 +138,14 @@ struct MinHeapNode* buildHuffmanTree(char data[], int freq[], int size) {
     return extractMin(minHeap);
 }
 
-// Huffman 코드를 저장하는 함수
-void storeCodes(struct MinHeapNode* root, int arr[], int top) {
+void saveCodes(struct MinHeapNode* root, int arr[], int top) {
     if (root->left) {
         arr[top] = 0;
-        storeCodes(root->left, arr, top + 1);
+        saveCodes(root->left, arr, top + 1);
     }
     if (root->right) {
         arr[top] = 1;
-        storeCodes(root->right, arr, top + 1);
+        saveCodes(root->right, arr, top + 1);
     }
     if (!(root->left) && !(root->right)) {
         char code[MAX_TREE_HT];
@@ -168,17 +165,21 @@ void storeCodes(struct MinHeapNode* root, int arr[], int top) {
     }
 }
 
-// Huffman 코드 생성 함수
+// generate huffmancodes
 void generateHuffmanCodes(struct MinHeapNode* root) {
     int arr[MAX_TREE_HT], top = 0;
-    storeCodes(root, arr, top);
+    saveCodes(root, arr, top);
 }
 
 int main() {
-    // Calculate character frequencies
-    calculateFrequency(FILENAME);
 
-    // Create arrays for characters and their frequencies
+    // start time
+    clock_t start = clock();
+
+    // Calculate character frequencies
+    calculateFrequency("Huffman_input.txt");
+
+    // Create arrays for characters, frequencies
     char data[CHAR_SET_SIZE];
     int freq[CHAR_SET_SIZE];
     int index = 0;
@@ -194,11 +195,18 @@ int main() {
     // Build Huffman Tree
     struct MinHeapNode* root = buildHuffmanTree(data, freq, index);
 
-    // Generate Huffman Codes for specific characters
+    // Generate Huffman Codes 
     generateHuffmanCodes(root);
 
     // Print the Huffman codes in the specified format
     printf("Huffman code (‘A’ = %s, ‘T’ = %s, ‘G’ = %s, ‘C’ = %s)\n", codeA, codeT, codeG, codeC);
+    
+    
+    // print execution time 
+    clock_t end = clock();
+    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("Execution time: %f seconds\n", time_spent);
+
 
     return 0;
 }

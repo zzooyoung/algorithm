@@ -137,8 +137,7 @@ void printCodes(struct MinHeapNode* root, int arr[], int top) {
 }
 
 // Huffman 코드 생성 및 출력
-void HuffmanCodes(char data[], int freq[], int size) {
-    struct MinHeapNode* root = buildHuffmanTree(data, freq, size);
+void HuffmanCodes(struct MinHeapNode* root) {
     int arr[MAX_TREE_HT], top = 0;
     printCodes(root, arr, top);
 }
@@ -205,9 +204,12 @@ int main() {
         printf("%c: %d\n", data[i], freq[i]);
     }
 
-    // Huffman 코드 생성
+    // Huffman 트리 생성
+    struct MinHeapNode* root = buildHuffmanTree(data, freq, unique_char_count);
+
+    // Huffman 코드 출력
     printf("\nHuffman Codes:\n");
-    HuffmanCodes(data, freq, unique_char_count);
+    HuffmanCodes(root);
 
     // 압축 해제 예제
     const char* encodedStr = "10110010001110101010100";

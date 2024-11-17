@@ -2,8 +2,7 @@
     File Name : Dijkstra.c
     Description : 알고리즘 HW3 과제 중 4. Dijkstra Shortest Path algorithm 구현 입니다. 
     input: Chapter 4-1, 52p의 그래프
-    output: 아래의 형태로 각 도시 간 거리 출력 (안에 거리는 실제와 다를
-수 있음)
+    output: 아래의 형태로 각 도시 간 거리 출력 (안에 거리는 실제와 다를 수 있음)
 */
 
 // Heading File Import
@@ -27,7 +26,7 @@ int graph[vertex][vertex] = {
     {0, 0, 0, 0, 0, 0, 9, 5, 0}
 };
 
-// city Names
+// City Names
 const char *cityNames[vertex] = {"서울", "인천", "수원", "대전", "전주", "광주", "대구", "울산", "부산"};
 
 // return min distance index
@@ -65,37 +64,53 @@ void dijkstra(int graph[vertex][vertex], int src, double distances[vertex]) {
         distances[i] = (double)dist[i];
 }
 
+// Function to calculate the time difference in milliseconds
+double getElapsedTime(struct timespec start, struct timespec end) {
+    double start_ms = (double)start.tv_sec * 1000.0 + (double)start.tv_nsec / 1e6;
+    double end_ms = (double)end.tv_sec * 1000.0 + (double)end.tv_nsec / 1e6;
+    return end_ms - start_ms;
+}
+
 int main() {
     double distances[vertex][vertex];
-    clock_t start, end;
+    struct timespec start, end;
+    double total_runtime = 0.0;
 
-    // start time 
-    start = clock();
+    for (int run = 1; run <= 100; run++) {
+        printf("\nRun %d:\n", run);
 
+        // Start time
+        clock_gettime(CLOCK_MONOTONIC, &start);
 
+        // Run Dijkstra for each source vertex
+        for (int i = 0; i < vertex; i++)
+            dijkstra(graph, i, distances[i]);
 
-    for (int i = 0; i < vertex; i++)
-        dijkstra(graph, i, distances[i]);
+        // End time
+        clock_gettime(CLOCK_MONOTONIC, &end);
+        double runtime_ms = getElapsedTime(start, end);
+        total_runtime += runtime_ms;
 
-    end = clock();
-    double runtime = ((double)(end - start)) / CLOCKS_PER_SEC;
-
-    printf("      서울  인천  수원  대전  전주  광주  대구  울산  부산\n");
-    for (int i = 0; i < vertex; i++) {
-        printf("%s ", cityNames[i]); 
-        for (int j = 0; j < vertex; j++) {
-            if (j < i) {
-                printf("      ");
-            } else if (distances[i][j] == INT_MAX) {
-                printf(" INF ");
-            } else {
-                printf(" %4.1f ", distances[i][j]);
+        // Print result
+        printf("      서울  인천  수원  대전  전주  광주  대구  울산  부산\n");
+        for (int i = 0; i < vertex; i++) {
+            printf("%s ", cityNames[i]);
+            for (int j = 0; j < vertex; j++) {
+                if (j < i) {
+                    printf("      ");
+                } else if (distances[i][j] == INT_MAX) {
+                    printf(" INF ");
+                } else {
+                    printf(" %4.1f ", distances[i][j]);
+                }
             }
+            printf("\n");
         }
-        printf("\n");
+
+        printf("\nRun %d Time: %.6f ms\n", run, runtime_ms);
     }
 
-    printf("\nRunning time: %f seconds\n", runtime);
-    
+    printf("\nAverage Running Time: %.6f ms\n", total_runtime / 100);
+
     return 0;
 }

@@ -57,7 +57,7 @@ public class EditDistance {
         int n = t.length();
 
         // Print column headers (characters of T)
-        System.out.print("    ");
+        System.out.print("  ");
         System.out.print("  ");
         for (int j = 0; j < n; j++) {
             System.out.print(t.charAt(j) + " ");

@@ -16,19 +16,19 @@ using namespace std;
 
 void coinChange(int n, vector<int> &coins) {
     int k = coins.size();
-    vector<int> dp(n + 1, INT_MAX); // DP 배열 초기화
-    dp[0] = 0; // 0원을 만들기 위한 동전 수는 0
+    vector<int> table(n + 1, INT_MAX); // table initialize
+    table[0] = 0; // for zero
 
-    // DP 테이블 계산
+    // calculate
     for (int i = 0; i < k; i++) {
         for (int j = coins[i]; j <= n; j++) {
-            if (dp[j - coins[i]] != INT_MAX && dp[j - coins[i]] + 1 < dp[j]) {
-                dp[j] = dp[j - coins[i]] + 1;
+            if (table[j - coins[i]] != INT_MAX && table[j - coins[i]] + 1 < table[j]) {
+                table[j] = table[j - coins[i]] + 1;
             }
         }
     }
 
-    // DP 테이블 출력
+    // print result table
     cout << "DP Table:\n";
     cout << "j: ";
     for (int j = 0; j <= n; j++) {
@@ -38,26 +38,18 @@ void coinChange(int n, vector<int> &coins) {
 
     cout << "C: ";
     for (int j = 0; j <= n; j++) {
-        if (dp[j] == INT_MAX) {
+        if (table[j] == INT_MAX) {
             cout << setw(3) << "∞";
         } else {
-            cout << setw(3) << dp[j];
+            cout << setw(3) << table[j];
         }
     }
     cout << endl;
-
-    // 최소 동전 수 출력
-    cout << "\nMinimum coins required to make " << n << " is: ";
-    if (dp[n] == INT_MAX) {
-        cout << "Not possible" << endl;
-    } else {
-        cout << dp[n] << endl;
-    }
 }
 
 int main() {
-    int n = 20; // 거스름돈 금액
-    vector<int> coins = {16, 10, 5, 1}; // 동전 단위
+    int n = 20; // n 
+    vector<int> coins = {16, 10, 5, 1}; // coin {d1, d2, d3, d4}
 
     coinChange(n, coins);
 

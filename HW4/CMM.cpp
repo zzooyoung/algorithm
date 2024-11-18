@@ -1,82 +1,115 @@
 /*
     File Name : CMM.cpp
-    Description : 알고리즘 HW4 과제 중 2. Chained Matrix Multiplications(CMM) algorithm 구현 입니다. 
+    Description : 알고리즘 HW4 과제 중 2. Chained Matrix Multiplications(CMM) algorithm 구현
 
     Input : matrix_input.txt 
-    Output : Chapter 5-1, 48p와 같은 테이블 및 최소 곱셈 횟수 값
+    Output : 읽어온 행렬 데이터, 정확한 차원 정보 및 최소 곱셈 횟수 출력
 */
 
-// Heading Commnets
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <string>
 #include <sstream>
-#include <iomanip>
+#include <stdexcept>
+#include <algorithm>
 #include <climits>
-
 using namespace std;
 
-// Function to parse input file and extract matrix dimensions
-vector<int> parseInputFile(const string &filename) {
+// 행렬 크기 추출 함수
+vector<int> readMatrixDimensions(const string& filename) {
     ifstream file(filename);
     if (!file.is_open()) {
-        cerr << "Error: Unable to open file." << endl;
-        exit(1);
+        throw runtime_error("파일을 열 수 없습니다: " + filename);
     }
 
     vector<int> dimensions;
     string line;
+    bool inMatrix = false; // 현재 행렬을 읽는 중인지 확인
 
+    // 파일에서 행렬 데이터 추출
     while (getline(file, line)) {
-        if (line.find('=') != string::npos) { // Detect matrix declaration
-            vector<vector<int>> matrix;
-            while (getline(file, line) && !line.empty() && line[0] == '[') {
-                stringstream ss(line.substr(1, line.size() - 2)); // Strip square brackets
-                int val;
-                vector<int> row;
-                while (ss >> val) {
-                    row.push_back(val);
+        // 행렬 정의 시작
+        if (line.find("A") != string::npos && line.find("=") != string::npos) {
+            inMatrix = true; // 행렬 데이터 읽기 시작
+            int rowCount = 0; // 행 수
+            int colCount = 0; // 열 수
+            bool firstRow = true;
+
+            // 행렬 이름 출력
+            cout << line << endl;
+
+            // 행렬 데이터를 읽음
+            while (getline(file, line) && inMatrix) {
+                // 먼저 `[[`와 `]]`를 처리
+                if (line.find("[[") != string::npos) {
+                    line = line.substr(line.find("[[") + 2); // '[[ 이후'
+                    rowCount++; // 첫 줄도 행으로 반영
                 }
-                matrix.push_back(row);
+
+                if (line.find("]]") != string::npos) {
+                    line = line.substr(0, line.find("]]")); // ']] 이전'
+                    inMatrix = false; // 행렬 데이터 끝
+                }
+
+                // 그런 다음 `[`, `]` 처리
+                line.erase(remove(line.begin(), line.end(), '['), line.end());
+                line.erase(remove(line.begin(), line.end(), ']'), line.end());
+
+                // 데이터가 비어있지 않은 경우 처리
+                if (!line.empty()) {
+                    if (line.find("[[") == string::npos) {
+                        rowCount++; // 첫 줄 외 나머지 줄의 행 증가
+                    }
+                    if (firstRow) {
+                        // 첫 번째 줄에서 열 크기 계산
+                        istringstream iss(line);
+                        int temp;
+                        int count = 0;
+                        while (iss >> temp) {
+                            count++;
+                        }
+                        colCount = count;
+                        firstRow = false;
+                    }
+                    cout << "  " << line << endl; // 각 행 출력
+                }
             }
 
-            // Store matrix dimensions
-            int rows = matrix.size();
-            int cols = matrix[0].size();
+            // 차원 추가
             if (dimensions.empty()) {
-                dimensions.push_back(rows); // First matrix's rows
+                dimensions.push_back(rowCount); // 첫 번째 행렬의 행 수
+            } else {
+                // 이전 행렬의 열 크기와 현재 행렬의 행 크기가 일치하는지 확인
+                if (dimensions.back() != rowCount) {
+                    cerr << "오류: 이전 행렬의 열 크기와 현재 행렬의 행 크기가 일치하지 않습니다." << endl;
+                    throw runtime_error("행렬 크기 불일치");
+                }
             }
-            dimensions.push_back(cols); // Current matrix's columns
+            dimensions.push_back(colCount); // 현재 행렬의 열 수
+
+            // 행렬 차원 출력
+            cout << "  행렬 크기: " << rowCount << " x " << colCount << endl;
         }
     }
 
     file.close();
-
-    if (dimensions.size() < 2) {
-        cerr << "Error: No valid matrix dimensions found in the input file." << endl;
-        exit(1);
-    }
-
     return dimensions;
 }
 
-// Chained Matrix Multiplication Algorithm
-int matrixChainOrder(const vector<int> &dims, vector<vector<int>> &dp) {
+
+// 행렬 체인 곱셈 알고리즘
+void matrixChainMultiplication(const vector<int>& dims) {
     int n = dims.size() - 1;
-    dp.resize(n + 1, vector<int>(n + 1, 0));
+    vector<vector<int>> dp(n, vector<int>(n, 0));
 
-    for (int i = 1; i <= n; i++) {
-        dp[i][i] = 0; // No cost to multiply one matrix
-    }
-
-    for (int L = 1; L < n; L++) { // L is chain length
-        for (int i = 1; i <= n - L; i++) {
-            int j = i + L;
+    // DP 계산
+    for (int L = 2; L <= n; ++L) { // L은 체인의 길이
+        for (int i = 0; i < n - L + 1; ++i) {
+            int j = i + L - 1;
             dp[i][j] = INT_MAX;
-
-            for (int k = i; k < j; k++) {
-                int cost = dp[i][k] + dp[k + 1][j] + dims[i - 1] * dims[k] * dims[j];
+            for (int k = i; k < j; ++k) {
+                int cost = dp[i][k] + dp[k + 1][j] + dims[i] * dims[k + 1] * dims[j + 1];
                 if (cost < dp[i][j]) {
                     dp[i][j] = cost;
                 }
@@ -84,25 +117,15 @@ int matrixChainOrder(const vector<int> &dims, vector<vector<int>> &dp) {
         }
     }
 
-    return dp[1][n];
-}
-
-// Print DP Table as a formatted table
-void printTable(const vector<vector<int>> &dp, int n) {
-    cout << "C ";
-    for (int j = 1; j <= n; j++) {
-        cout << setw(8) << j;
-    }
-    cout << endl;
-
-    for (int i = 1; i <= n; i++) {
-        cout << i << " ";
-        for (int j = 1; j <= n; j++) {
-            if (i > j) {
-                cout << setw(8) << " ";
-            } else {
-                cout << setw(8) << dp[i][j];
-            }
+    // 결과 출력
+    cout << "\n최소 곱셈 횟수: " << dp[0][n - 1] << endl;
+    cout << "DP 테이블:" << endl;
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            if (i <= j)
+                cout << dp[i][j] << "\t";
+            else
+                cout << "\t";
         }
         cout << endl;
     }
@@ -111,26 +134,22 @@ void printTable(const vector<vector<int>> &dp, int n) {
 int main() {
     string filename = "matrix_input.txt";
 
-    // Parse input file to get dimensions
-    vector<int> dims = parseInputFile(filename);
+    try {
+        // 파일에서 차원 읽기
+        vector<int> dimensions = readMatrixDimensions(filename);
 
-    if (dims.size() < 2) {
-        cerr << "Error: Invalid matrix dimensions in input file." << endl;
-        return 1;
+        // 읽은 차원 출력
+        cout << "\n행렬 차원: ";
+        for (size_t i = 0; i < dimensions.size(); ++i) {
+            cout << dimensions[i] << " ";
+        }
+        cout << endl;
+
+        // 결과 계산 및 출력
+        matrixChainMultiplication(dimensions);
+    } catch (const exception& e) {
+        cerr << "오류: " << e.what() << endl;
     }
-
-    int n = dims.size() - 1; // Number of matrices
-    vector<vector<int>> dp;
-
-    // Solve Chained Matrix Multiplication
-    int minCost = matrixChainOrder(dims, dp);
-
-    // Output the DP table as a formatted table
-    cout << "Optimal Parenthesization Cost Table (C):" << endl;
-    printTable(dp, n);
-
-    // Output the minimum cost
-    cout << "\nMinimum number of scalar multiplications: " << minCost << endl;
 
     return 0;
 }

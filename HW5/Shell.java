@@ -1,81 +1,86 @@
-// File Name : EditDistance.java
-// Description : 알고리즘 HW4 과제 중 3.Edit Distance algorithm 구현 입니다.
-// - Input : 수업 예제인 ‘strong’과 ‘stone’
-// - Output : Chapter 5-2, 17p의 테이블
+// File Name : Shell.java
+// Description : 알고리즘 HW5 과제 중 4.Shell algorithm 구현 입니다.
+// - Input : input.txt
+// - Output : shell_output.txt
 
-import java.util.Arrays;
+import java.io.*;
+import java.util.*;
 
-public class Bubble {
+public class Shell {
+
+    // Shell Sort Method
+    public static void shellSort(int[] arr) {
+        // gap h
+        int[] gaps = {100, 50, 10, 5, 1};
+
+        // each gap Big --> small
+        for (int gap : gaps) {
+            for (int i = gap; i < arr.length; i++) {
+                int temp = arr[i];
+                int j = i;
+                // gap 간격을 기준으로 삽입 정렬
+                while (j >= gap && arr[j - gap] > temp) {
+                    arr[j] = arr[j - gap];
+                    j -= gap;
+                }
+                arr[j] = temp;
+            }
+        }
+    }
+
+    // Read File to int From File
+    public static int[] readNumbersFromFile(String fileName) {
+        List<Integer> numbersList = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] tokens = line.split("\\s+");
+                for (String token : tokens) {
+                    try {
+                        numbersList.add(Integer.parseInt(token));
+                    } catch (NumberFormatException e) {
+                        System.err.println("Number Format Error: " + token);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("File I/O Error : " + e.getMessage());
+            return null;
+        }
+        
+
+        int[] arr = new int[numbersList.size()];
+        for (int i = 0; i < numbersList.size(); i++) {
+            arr[i] = numbersList.get(i);
+        }
+        return arr;
+    }
+
+    // Write Number to file
+    public static void writeNumbersToFile(String fileName, int[] arr) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(fileName))) {
+            for (int i = 0; i < arr.length; i++) {
+                bw.write(arr[i] + "\n");
+            }
+            bw.newLine();
+        } catch (IOException e) {
+            System.err.println("File Write Error: " + e.getMessage());
+        }
+    }
 
     public static void main(String[] args) {
-        String s = "strong";
-        String t = "stone";
-
-        int[][] table = calculateEditDistance(s, t);
-
-        // Print the table
-        printTable(table, s, t);
-
-        // Print the edit distance
-        System.out.println("\nMinimum Edit Distance: " + table[s.length()][t.length()]);
-    }
-
-    public static int[][] calculateEditDistance(String s, String t) {
-        int m = s.length();
-        int n = t.length();
-
-        int[][] table = new int[m + 1][n + 1];
-
-        // Initialize the table
-        for (int i = 0; i <= m; i++) {
-            table[i][0] = i; // Cost of deleting characters from S
-        }
-        for (int j = 0; j <= n; j++) {
-            table[0][j] = j; // Cost of inserting characters into S
+        // File read from input.txt
+        int[] arr = readNumbersFromFile("input.txt");
+        if (arr == null) {
+            return;  // Error Catch
         }
 
-        // Fill the table
-        for (int i = 1; i <= m; i++) {
-            for (int j = 1; j <= n; j++) {
-                int cost = (s.charAt(i - 1) == t.charAt(j - 1)) ? 0 : 1;
+        // Shell Sort Execution
+        shellSort(arr);
 
-                table[i][j] = Math.min(
-                        table[i - 1][j] + 1, // Deletion
-                        Math.min(
-                                table[i][j - 1] + 1, // Insertion
-                                table[i - 1][j - 1] + cost // Substitution
-                        )
-                );
-            }
-        }
+        // 결과를 shell_output.txt로 저장
+        writeNumbersToFile("shell_output.txt", arr);
 
-        return table;
-    }
-
-    public static void printTable(int[][] table, String s, String t) {
-        int m = s.length();
-        int n = t.length();
-
-        // Print column headers (characters of T)
-        System.out.print("  ");
-        System.out.print("  ");
-        for (int j = 0; j < n; j++) {
-            System.out.print(t.charAt(j) + " ");
-        }
-        System.out.println();
-
-        // Print the table with row headers (characters of S)
-        for (int i = 0; i <= m; i++) {
-            if (i == 0) {
-                System.out.print("  ");
-            } else {
-                System.out.print(s.charAt(i - 1) + " ");
-            }
-
-            for (int j = 0; j <= n; j++) {
-                System.out.print(table[i][j] + " ");
-            }
-            System.out.println();
-        }
+        System.out.println("Save shell_output.txt");
     }
 }

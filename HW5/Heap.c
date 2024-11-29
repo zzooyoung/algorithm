@@ -1,93 +1,115 @@
 /*
-    File Name : FloydWarshall.c
-    Description : 알고리즘 HW4 과제 중 1. Floyd-Warshall algorithm 구현 입니다. 
-    input: Chapter 4-1, 52p의 그래프
-    Output: Chapter 5-1, 6p과 같은 형태의 테이블
+    File Name : Heap.c
+    Description : 알고리즘 HW5 과제 중 5. Heap Sorting algorithm 구현 입니다. 
+    input: input.txt
+    Output: heap_output.txt
 */
 
 // Heading File Import
 #include <stdio.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <time.h>
+#include <stdlib.h>
 
-#define VERTEX 9  // Vertex Amount
+void DownHeap(int arr[], int n, int i) {
+    int largest = i; // root (Max)
+    int left = 2 * i + 1; // i left child
+    int right = 2 * i + 2; // i right child
 
-// Graph Matrix
-int graph[VERTEX][VERTEX] = {
-    {0, 12, 0, 0, 0, 0, 0, 0, 0},
-    {12, 0, 15, 0, 0, 0, 0, 0, 0},
-    {0, 15, 0, 10, 0, 0, 0, 0, 0},
-    {0, 0, 10, 0, 3, 0, 0, 0, 0},
-    {0, 0, 0, 3, 0, 13, 0, 0, 0},
-    {0, 0, 0, 0, 13, 0, 15, 0, 0},
-    {0, 0, 0, 0, 0, 15, 0, 19, 9},
-    {0, 0, 0, 0, 0, 0, 19, 0, 5},
-    {0, 0, 0, 0, 0, 0, 9, 5, 0}
-};
+    if (left < n && arr[left] > arr[largest]) {
+        largest = left;
+    }
 
-// City Names
-const char *cityNames[VERTEX] = {"서울", "인천", "수원", "대전", "전주", "광주", "대구", "울산", "부산"};
+    if (right < n && arr[right] > arr[largest]) {
+        largest = right;
+    }
 
-// Run Floyd-Warshall Algorithm
-void floydWarshall(int graph[VERTEX][VERTEX], double distances[VERTEX][VERTEX]) {
-    for (int i = 0; i < VERTEX; i++)
-        for (int j = 0; j < VERTEX; j++) // Set 0 to INF
-            distances[i][j] = (graph[i][j] == 0 && i != j) ? INT_MAX : graph[i][j];
 
-    for (int k = 0; k < VERTEX; k++) {
-        for (int i = 0; i < VERTEX; i++) {
-            for (int j = 0; j < VERTEX; j++) {
-                if (distances[i][k] != INT_MAX && distances[k][j] != INT_MAX && // min change
-                    distances[i][k] + distances[k][j] < distances[i][j]) {
-                    distances[i][j] = distances[i][k] + distances[k][j];
-                }
-            }
-        }
-    } 
+    if (largest != i) {
+        // A[i] <-> A[bigger]
+        int temp = arr[i];
+        arr[i] = arr[largest];
+        arr[largest] = temp;
+
+        DownHeap(arr, n, largest);
+    }
 }
 
-// Function to calculate Running Time
-double getRunningTime(struct timespec start, struct timespec end) {
-    double start_ms = (double)start.tv_sec * 1000.0 + (double)start.tv_nsec / 1e6;
-    double end_ms = (double)end.tv_sec * 1000.0 + (double)end.tv_nsec / 1e6;
-    return end_ms - start_ms;
+// Heap Sort
+void heapSort(int arr[], int n) {
+    // Max Heap 
+    for (int i = n / 2 - 1; i >= 0; i--) {
+        DownHeap(arr, n, i);
+    }
+
+    for (int i = n - 1; i >= 1; i--) {
+        // Swap root(Max) <-> last node
+        int temp = arr[0];
+        arr[0] = arr[i];
+        arr[i] = temp;
+
+
+        DownHeap(arr, i, 0);
+    }
+}
+
+// Read Numbers From Rile
+int* readNumbersFromFile(const char* filename, int* size) {
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        printf("File Open Error\n");
+        return NULL;
+    }
+
+    int capacity = 10; // Capacity
+    *size = 0;
+    int* arr = (int*)malloc(capacity * sizeof(int));
+
+    while (fscanf(file, "%d", &arr[*size]) == 1) {
+        (*size)++;
+        // Capacity x 2
+        if (*size >= capacity) {
+            capacity *= 2;
+            arr = (int*)realloc(arr, capacity * sizeof(int));
+        }
+    }
+
+    fclose(file);
+    return arr;
+}
+
+// Write Numbers to File
+void writeNumbersToFile(const char* filename, int* arr, int size) {
+    FILE* file = fopen(filename, "w");
+    if (file == NULL) {
+        printf("File IO Error \n");
+        return;
+    }
+
+    for (int i = 0; i < size; i++) {
+        fprintf(file, "%d\n", arr[i]);
+    }
+    fprintf(file, "\n");
+
+    fclose(file);
 }
 
 int main() {
-    double distances[VERTEX][VERTEX];
-    struct timespec start, end;
-
-    // Start time
-    clock_gettime(CLOCK_MONOTONIC, &start);
-
-    // Run Floyd-Warshall
-    floydWarshall(graph, distances);
-
-    
-
-    // Print result
-    printf("      서울  인천  수원  대전  전주  광주  대구  울산  부산\n");
-    for (int i = 0; i < VERTEX; i++) {
-        printf("%s ", cityNames[i]);
-        for (int j = 0; j < VERTEX; j++) {
-            if (j < i) {
-                printf("      ");
-            } else if (distances[i][j] == INT_MAX) {
-                printf(" INF ");
-            } else {
-                printf(" %4.1f ", distances[i][j]);
-            }
-        }
-        printf("\n");
+    int size = 0;
+    // Read File
+    int* arr = readNumbersFromFile("input.txt", &size);
+    if (arr == NULL) {
+        return 1;
     }
 
-    // End time
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    // Heap Sort Execution
+    heapSort(arr, size);
 
-    double runtime_ms = getRunningTime(start, end);
+    // Write Numbers to Tile
+    writeNumbersToFile("heap_output.txt", arr, size);
 
-    printf("\nTotal Running Time: %.6f ms\n", runtime_ms);
+    printf("Save heap_output.txt\n");
+
+    // Memory Free
+    free(arr);
 
     return 0;
 }

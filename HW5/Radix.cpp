@@ -1,155 +1,140 @@
-/*
-    File Name : CMM.cpp
-    Description : 알고리즘 HW4 과제 중 2. Chained Matrix Multiplications(CMM) algorithm 구현
-
-    Input : matrix_input.txt 
-    Output : 읽어온 행렬 데이터, 정확한 차원 정보 및 최소 곱셈 횟수 출력
-*/
-
 #include <iostream>
 #include <fstream>
 #include <vector>
-#include <string>
-#include <sstream>
-#include <stdexcept>
 #include <algorithm>
-#include <climits>
+#include <cmath>
+
 using namespace std;
 
-// 행렬 크기 추출 함수
-vector<int> readMatrixDimensions(const string& filename) {
-    ifstream file(filename);
-    if (!file.is_open()) {
-        throw runtime_error("파일을 열 수 없습니다: " + filename);
+// MSD 방식의 카운팅 정렬 (자릿수 기준으로 정렬)
+void countingSortMSD(vector<int>& arr, int exp, int base) {
+    int n = arr.size();
+    vector<int> output(n);  // 출력 배열
+    vector<int> count(base, 0);  // 자릿수 0~base-1까지의 카운트 배열
+
+    // 현재 자릿수에 대해 카운트
+    for (int i = 0; i < n; i++) {
+        count[(arr[i] / exp) % base]++;
     }
 
-    vector<int> dimensions;
-    string line;
-    bool inMatrix = false; // 현재 행렬을 읽는 중인지 확인
+    // 카운트 배열을 누적합으로 변환
+    for (int i = 1; i < base; i++) {
+        count[i] += count[i - 1];
+    }
 
-    // 파일에서 행렬 데이터 추출
-    while (getline(file, line)) {
-        // 행렬 정의 시작
-        if (line.find("A") != string::npos && line.find("=") != string::npos) {
-            inMatrix = true; // 행렬 데이터 읽기 시작
-            int rowCount = 0; // 행 수
-            int colCount = 0; // 열 수
-            bool firstRow = true;
+    // 출력 배열에 자릿수에 맞는 값들 배치
+    for (int i = n - 1; i >= 0; i--) {
+        output[count[(arr[i] / exp) % base] - 1] = arr[i];
+        count[(arr[i] / exp) % base]--;
+    }
 
-            // 행렬 이름 출력
-            cout << line << endl;
+    // 정렬된 배열을 arr에 저장
+    for (int i = 0; i < n; i++) {
+        arr[i] = output[i];
+    }
+}
 
-            // 행렬 데이터를 읽음
-            while (getline(file, line) && inMatrix) {
-                // 먼저 `[[`와 `]]`를 처리
-                if (line.find("[[") != string::npos) {
-                    line = line.substr(line.find("[[") + 2); // '[[ 이후'
-                    rowCount++; // 첫 줄도 행으로 반영
-                }
+// MSD 방식의 Radix Sort
+void radixSortMSD(vector<int>& arr, int base = 10) {
+    int maxVal = *max_element(arr.begin(), arr.end());  // 최대값 찾기
+    int maxDigits = to_string(maxVal).length();  // 최대 자릿수 계산
 
-                if (line.find("]]") != string::npos) {
-                    line = line.substr(0, line.find("]]")); // ']] 이전'
-                    inMatrix = false; // 행렬 데이터 끝
-                }
+    // exp는 10^k (최상위 자릿수)로 시작
+    for (int exp = pow(base, maxDigits - 1); exp > 0; exp /= base) {
+        countingSortMSD(arr, exp, base);  // 각 자릿수에 대해 counting sort 수행
+    }
+}
 
-                // 그런 다음 `[`, `]` 처리
-                line.erase(remove(line.begin(), line.end(), '['), line.end());
-                line.erase(remove(line.begin(), line.end(), ']'), line.end());
+// LSD 방식의 카운팅 정렬
+void countingSortLSD(vector<int>& arr, int exp) {
+    int n = arr.size();
+    vector<int> output(n);  // 출력 배열
+    vector<int> count(10, 0);  // 자릿수 0~9까지의 카운트 배열
 
-                // 데이터가 비어있지 않은 경우 처리
-                if (!line.empty()) {
-                    if (line.find("[[") == string::npos) {
-                        rowCount++; // 첫 줄 외 나머지 줄의 행 증가
-                    }
-                    if (firstRow) {
-                        // 첫 번째 줄에서 열 크기 계산
-                        istringstream iss(line);
-                        int temp;
-                        int count = 0;
-                        while (iss >> temp) {
-                            count++;
-                        }
-                        colCount = count;
-                        firstRow = false;
-                    }
-                    cout << "  " << line << endl; // 각 행 출력
-                }
-            }
+    // 현재 자릿수에 대해 카운트
+    for (int i = 0; i < n; i++) {
+        count[(arr[i] / exp) % 10]++;
+    }
 
-            // 차원 추가
-            if (dimensions.empty()) {
-                dimensions.push_back(rowCount); // 첫 번째 행렬의 행 수
-            } else {
-                // 이전 행렬의 열 크기와 현재 행렬의 행 크기가 일치하는지 확인
-                if (dimensions.back() != rowCount) {
-                    cerr << "오류: 이전 행렬의 열 크기와 현재 행렬의 행 크기가 일치하지 않습니다." << endl;
-                    throw runtime_error("행렬 크기 불일치");
-                }
-            }
-            dimensions.push_back(colCount); // 현재 행렬의 열 수
+    // 카운트 배열을 누적합으로 변환
+    for (int i = 1; i < 10; i++) {
+        count[i] += count[i - 1];
+    }
 
-            // 행렬 차원 출력
-            cout << "  행렬 크기: " << rowCount << " x " << colCount << endl;
-        }
+    // 출력 배열에 자릿수에 맞는 값들 배치
+    for (int i = n - 1; i >= 0; i--) {
+        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+        count[(arr[i] / exp) % 10]--;
+    }
+
+    // 정렬된 배열을 arr에 저장
+    for (int i = 0; i < n; i++) {
+        arr[i] = output[i];
+    }
+}
+
+// LSD 방식의 Radix Sort
+void radixSortLSD(vector<int>& arr) {
+    int maxVal = *max_element(arr.begin(), arr.end());  // 최대값 찾기
+    for (int exp = 1; maxVal / exp > 0; exp *= 10) {
+        countingSortLSD(arr, exp);  // 각 자릿수에 대해 counting sort 수행
+    }
+}
+
+// 파일에서 숫자들을 읽어 배열로 반환
+vector<int> readNumbersFromFile(const string& filename) {
+    ifstream file(filename);
+    vector<int> arr;
+    int num;
+
+    if (!file.is_open()) {
+        cerr << "파일을 열 수 없습니다." << endl;
+        return arr;
+    }
+
+    while (file >> num) {
+        arr.push_back(num);
     }
 
     file.close();
-    return dimensions;
+    return arr;
 }
 
-
-// 행렬 체인 곱셈 알고리즘
-void matrixChainMultiplication(const vector<int>& dims) {
-    int n = dims.size() - 1;
-    vector<vector<int>> dp(n, vector<int>(n, 0));
-
-    // DP 계산
-    for (int L = 2; L <= n; ++L) { // L은 체인의 길이
-        for (int i = 0; i < n - L + 1; ++i) {
-            int j = i + L - 1;
-            dp[i][j] = INT_MAX;
-            for (int k = i; k < j; ++k) {
-                int cost = dp[i][k] + dp[k + 1][j] + dims[i] * dims[k + 1] * dims[j + 1];
-                if (cost < dp[i][j]) {
-                    dp[i][j] = cost;
-                }
-            }
-        }
+// 배열을 파일에 저장
+void writeNumbersToFile(const string& filename, const vector<int>& arr) {
+    ofstream file(filename);
+    if (!file.is_open()) {
+        cerr << "파일을 열 수 없습니다." << endl;
+        return;
     }
 
-    // 결과 출력
-    cout << "\n최소 곱셈 횟수: " << dp[0][n - 1] << endl;
-    cout << "DP 테이블:" << endl;
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            if (i <= j)
-                cout << dp[i][j] << "\t";
-            else
-                cout << "\t";
-        }
-        cout << endl;
+    for (const int& num : arr) {
+        file << num << " ";
     }
+    file << endl;
+
+    file.close();
 }
 
 int main() {
-    string filename = "matrix_input.txt";
+    // input.txt에서 숫자 읽기
+    vector<int> arr = readNumbersFromFile("input.txt");
 
-    try {
-        // 파일에서 차원 읽기
-        vector<int> dimensions = readMatrixDimensions(filename);
-
-        // 읽은 차원 출력
-        cout << "\n행렬 차원: ";
-        for (size_t i = 0; i < dimensions.size(); ++i) {
-            cout << dimensions[i] << " ";
-        }
-        cout << endl;
-
-        // 결과 계산 및 출력
-        matrixChainMultiplication(dimensions);
-    } catch (const exception& e) {
-        cerr << "오류: " << e.what() << endl;
+    if (arr.empty()) {
+        return 1;  // 파일이 비어 있으면 종료
     }
+
+    // LSD 방식으로 정렬
+    vector<int> arrLSD = arr;
+    radixSortLSD(arrLSD);
+    writeNumbersToFile("radix_lsd_output.txt", arrLSD);
+
+    // MSD 방식으로 정렬
+    vector<int> arrMSD = arr;
+    radixSortMSD(arrMSD);
+    writeNumbersToFile("radix_msd_output.txt", arrMSD);
+
+    cout << "정렬 완료! 결과는 radix_lsd_output.txt와 radix_msd_output.txt에 저장되었습니다." << endl;
 
     return 0;
 }

@@ -1,140 +1,133 @@
+/*
+    File Name : Radix.cpp
+    Description : 알고리즘 HW5 과제 중 6. Radix Sorting algorithm 구현
+
+    Input : input.txt
+    Output1 : radix_lsd_output.txt
+    Output2 : redix_msd_output.txt
+*/
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <algorithm>
 #include <cmath>
 
 using namespace std;
 
-// MSD 방식의 카운팅 정렬 (자릿수 기준으로 정렬)
-void countingSortMSD(vector<int>& arr, int exp, int base) {
-    int n = arr.size();
-    vector<int> output(n);  // 출력 배열
-    vector<int> count(base, 0);  // 자릿수 0~base-1까지의 카운트 배열
+// return position number
+int get_digit(int num, int digit_pos) {
+    return (num / static_cast<int>(pow(10, digit_pos))) % 10;
+}
 
-    // 현재 자릿수에 대해 카운트
-    for (int i = 0; i < n; i++) {
-        count[(arr[i] / exp) % base]++;
+// MSD Radix Sort helper function
+void radix_msd_helper(vector<int>& arr, int low, int high, int digit_pos) {
+    if (low >= high || digit_pos < 0) return;
+    
+    vector<vector<int>> buckets(10);
+    
+    // Distribute the numbers into the corresponding digit buckets
+    for (int i = low; i <= high; ++i) {
+        int digit = get_digit(arr[i], digit_pos);
+        buckets[digit].push_back(arr[i]);
+    }
+    
+    // Rebuild the array by merging the buckets in order
+    int idx = low;
+    for (int i = 0; i < 10; ++i) {
+        for (int num : buckets[i]) {
+            arr[idx++] = num;
+        }
     }
 
-    // 카운트 배열을 누적합으로 변환
-    for (int i = 1; i < base; i++) {
-        count[i] += count[i - 1];
-    }
-
-    // 출력 배열에 자릿수에 맞는 값들 배치
-    for (int i = n - 1; i >= 0; i--) {
-        output[count[(arr[i] / exp) % base] - 1] = arr[i];
-        count[(arr[i] / exp) % base]--;
-    }
-
-    // 정렬된 배열을 arr에 저장
-    for (int i = 0; i < n; i++) {
-        arr[i] = output[i];
+    for (int i = 0; i < 10; ++i) {
+        if (buckets[i].size() > 1) {
+            radix_msd_helper(arr, low, low + buckets[i].size() - 1, digit_pos - 1);
+        }
+        low += buckets[i].size();
     }
 }
 
-// MSD 방식의 Radix Sort
-void radixSortMSD(vector<int>& arr, int base = 10) {
-    int maxVal = *max_element(arr.begin(), arr.end());  // 최대값 찾기
-    int maxDigits = to_string(maxVal).length();  // 최대 자릿수 계산
-
-    // exp는 10^k (최상위 자릿수)로 시작
-    for (int exp = pow(base, maxDigits - 1); exp > 0; exp /= base) {
-        countingSortMSD(arr, exp, base);  // 각 자릿수에 대해 counting sort 수행
+// MSD Radix Sort
+void radix_msd_sort(vector<int>& arr) {
+    int max_num = *max_element(arr.begin(), arr.end());
+    int max_digit_pos = 0;
+    
+    // Find the maximum 
+    while (max_num > 0) {
+        max_num /= 10;
+        max_digit_pos++;
     }
+    
+    // Start sorting from the most digit
+    radix_msd_helper(arr, 0, arr.size() - 1, max_digit_pos - 1);
 }
 
-// LSD 방식의 카운팅 정렬
-void countingSortLSD(vector<int>& arr, int exp) {
-    int n = arr.size();
-    vector<int> output(n);  // 출력 배열
-    vector<int> count(10, 0);  // 자릿수 0~9까지의 카운트 배열
+// LSD Radix Sort
+void radix_lsd_sort(vector<int>& arr) {
+    int max_num = *max_element(arr.begin(), arr.end());
+    int max_digit_pos = 0;
 
-    // 현재 자릿수에 대해 카운트
-    for (int i = 0; i < n; i++) {
-        count[(arr[i] / exp) % 10]++;
+    // Find the maximum 
+    while (max_num > 0) {
+        max_num /= 10;
+        max_digit_pos++;
     }
 
-    // 카운트 배열을 누적합으로 변환
-    for (int i = 1; i < 10; i++) {
-        count[i] += count[i - 1];
+    for (int digit_pos = 0; digit_pos < max_digit_pos; ++digit_pos) {
+
+        vector<vector<int>> buckets(10);
+
+
+        for (int num : arr) {
+            int digit = get_digit(num, digit_pos);
+            buckets[digit].push_back(num);
+        }
+
+        // Rebuild the array
+        int idx = 0;
+        for (int i = 0; i < 10; ++i) {
+            for (int num : buckets[i]) {
+                arr[idx++] = num;
+            }
+        }
     }
-
-    // 출력 배열에 자릿수에 맞는 값들 배치
-    for (int i = n - 1; i >= 0; i--) {
-        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-        count[(arr[i] / exp) % 10]--;
-    }
-
-    // 정렬된 배열을 arr에 저장
-    for (int i = 0; i < n; i++) {
-        arr[i] = output[i];
-    }
-}
-
-// LSD 방식의 Radix Sort
-void radixSortLSD(vector<int>& arr) {
-    int maxVal = *max_element(arr.begin(), arr.end());  // 최대값 찾기
-    for (int exp = 1; maxVal / exp > 0; exp *= 10) {
-        countingSortLSD(arr, exp);  // 각 자릿수에 대해 counting sort 수행
-    }
-}
-
-// 파일에서 숫자들을 읽어 배열로 반환
-vector<int> readNumbersFromFile(const string& filename) {
-    ifstream file(filename);
-    vector<int> arr;
-    int num;
-
-    if (!file.is_open()) {
-        cerr << "파일을 열 수 없습니다." << endl;
-        return arr;
-    }
-
-    while (file >> num) {
-        arr.push_back(num);
-    }
-
-    file.close();
-    return arr;
-}
-
-// 배열을 파일에 저장
-void writeNumbersToFile(const string& filename, const vector<int>& arr) {
-    ofstream file(filename);
-    if (!file.is_open()) {
-        cerr << "파일을 열 수 없습니다." << endl;
-        return;
-    }
-
-    for (const int& num : arr) {
-        file << num << " ";
-    }
-    file << endl;
-
-    file.close();
 }
 
 int main() {
-    // input.txt에서 숫자 읽기
-    vector<int> arr = readNumbersFromFile("input.txt");
-
-    if (arr.empty()) {
-        return 1;  // 파일이 비어 있으면 종료
+    // Read input data from input.txt
+    ifstream input_file("input.txt");
+    vector<int> arr;
+    int num;
+    
+    // Read int from input file
+    while (input_file >> num) {
+        arr.push_back(num);
     }
 
-    // LSD 방식으로 정렬
-    vector<int> arrLSD = arr;
-    radixSortLSD(arrLSD);
-    writeNumbersToFile("radix_lsd_output.txt", arrLSD);
+    input_file.close();
 
-    // MSD 방식으로 정렬
-    vector<int> arrMSD = arr;
-    radixSortMSD(arrMSD);
-    writeNumbersToFile("radix_msd_output.txt", arrMSD);
+    // MSD Radix Sort
+    vector<int> arr_msd = arr; // Copy original array 
+    radix_msd_sort(arr_msd);
 
-    cout << "정렬 완료! 결과는 radix_lsd_output.txt와 radix_msd_output.txt에 저장되었습니다." << endl;
+    // Write Result to radix_msd_output.txt
+    ofstream output_msd_file("radix_msd_output.txt");
+    for (int i = 0; i < arr_msd.size(); ++i) {
+        output_msd_file << arr_msd[i] << "\n";
+    }
+    output_msd_file.close();
+
+    // LSD Radix Sort
+    vector<int> arr_lsd = arr; // Copy original array
+    radix_lsd_sort(arr_lsd);
+
+    // Write result to radix_lsd_output.txt
+    ofstream output_lsd_file("radix_lsd_output.txt");
+    for (int i = 0; i < arr_lsd.size(); ++i) {
+        output_lsd_file << arr_lsd[i] << "\n";
+    }
+    output_lsd_file.close();
 
     return 0;
 }

@@ -1,93 +1,78 @@
 /*
-    File Name : FloydWarshall.c
-    Description : 알고리즘 HW4 과제 중 1. Floyd-Warshall algorithm 구현 입니다. 
-    input: Chapter 4-1, 52p의 그래프
-    Output: Chapter 5-1, 6p과 같은 형태의 테이블
+    File Name : Selection.c
+    Description : 알고리즘 HW5 과제 중 2. Selection Sorting Algorithm 구현 입니다. 
+    input: input.txt
+    Output: selection_output.txt
 */
 
 // Heading File Import
 #include <stdio.h>
-#include <limits.h>
-#include <stdbool.h>
-#include <time.h>
+#include <stdlib.h>
 
-#define VERTEX 9  // Vertex Amount
-
-// Graph Matrix
-int graph[VERTEX][VERTEX] = {
-    {0, 12, 0, 0, 0, 0, 0, 0, 0},
-    {12, 0, 15, 0, 0, 0, 0, 0, 0},
-    {0, 15, 0, 10, 0, 0, 0, 0, 0},
-    {0, 0, 10, 0, 3, 0, 0, 0, 0},
-    {0, 0, 0, 3, 0, 13, 0, 0, 0},
-    {0, 0, 0, 0, 13, 0, 15, 0, 0},
-    {0, 0, 0, 0, 0, 15, 0, 19, 9},
-    {0, 0, 0, 0, 0, 0, 19, 0, 5},
-    {0, 0, 0, 0, 0, 0, 9, 5, 0}
-};
-
-// City Names
-const char *cityNames[VERTEX] = {"서울", "인천", "수원", "대전", "전주", "광주", "대구", "울산", "부산"};
-
-// Run Floyd-Warshall Algorithm
-void floydWarshall(int graph[VERTEX][VERTEX], double distances[VERTEX][VERTEX]) {
-    for (int i = 0; i < VERTEX; i++)
-        for (int j = 0; j < VERTEX; j++) // Set 0 to INF
-            distances[i][j] = (graph[i][j] == 0 && i != j) ? INT_MAX : graph[i][j];
-
-    for (int k = 0; k < VERTEX; k++) {
-        for (int i = 0; i < VERTEX; i++) {
-            for (int j = 0; j < VERTEX; j++) {
-                if (distances[i][k] != INT_MAX && distances[k][j] != INT_MAX && // min change
-                    distances[i][k] + distances[k][j] < distances[i][j]) {
-                    distances[i][j] = distances[i][k] + distances[k][j];
-                }
+// Exection Selection Sort 
+void selectionSort(int arr[], int n) {
+    int i, j, minIdx, temp;
+    for (i = 0; i < n - 1; i++) {
+        minIdx = i;
+        for (j = i + 1; j < n; j++) {
+            if (arr[j] < arr[minIdx]) {
+                minIdx = j;
             }
         }
-    } 
+        // Swap arr[i] <-> min
+        temp = arr[minIdx];
+        arr[minIdx] = arr[i];
+        arr[i] = temp;
+    }
 }
 
-// Function to calculate Running Time
-double getRunningTime(struct timespec start, struct timespec end) {
-    double start_ms = (double)start.tv_sec * 1000.0 + (double)start.tv_nsec / 1e6;
-    double end_ms = (double)end.tv_sec * 1000.0 + (double)end.tv_nsec / 1e6;
-    return end_ms - start_ms;
+// 파일에서 숫자 읽기
+int readNumbersFromFile(const char* filename, int* arr) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        printf("File Read Error\n");
+        return -1;  // File Read Error
+    }
+
+    int num, i = 0;
+    while (fscanf(file, "%d", &num) == 1) {
+        arr[i++] = num;  // Read File into arr
+    }
+    fclose(file);
+    return i;  // arr Size return
+}
+
+// Write to File
+void writeNumbersToFile(const char* filename, int* arr, int n) {
+    FILE* file = fopen(filename, "w");
+    if (!file) {
+        printf("File Read Error\n");
+        return;
+    }
+
+    for (int i = 0; i < n; i++) {
+        fprintf(file, "%d\n", arr[i]);
+    }
+    fclose(file);
 }
 
 int main() {
-    double distances[VERTEX][VERTEX];
-    struct timespec start, end;
+    int arr[1000];
+    int n;
 
-    // Start time
-    clock_gettime(CLOCK_MONOTONIC, &start);
-
-    // Run Floyd-Warshall
-    floydWarshall(graph, distances);
-
-    
-
-    // Print result
-    printf("      서울  인천  수원  대전  전주  광주  대구  울산  부산\n");
-    for (int i = 0; i < VERTEX; i++) {
-        printf("%s ", cityNames[i]);
-        for (int j = 0; j < VERTEX; j++) {
-            if (j < i) {
-                printf("      ");
-            } else if (distances[i][j] == INT_MAX) {
-                printf(" INF ");
-            } else {
-                printf(" %4.1f ", distances[i][j]);
-            }
-        }
-        printf("\n");
+    // Read input.txt
+    n = readNumbersFromFile("input.txt", arr);
+    if (n == -1) {
+        return 1;  // File Read Error
     }
 
-    // End time
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    // Selection Sort Execution
+    selectionSort(arr, n);
 
-    double runtime_ms = getRunningTime(start, end);
+    // selection_output.txt
+    writeNumbersToFile("selection_output.txt", arr, n);
 
-    printf("\nTotal Running Time: %.6f ms\n", runtime_ms);
+    printf("Save selection_output.txt\n");
 
     return 0;
 }

@@ -1,111 +1,102 @@
-// File Name : VertexCover.java
-// Description : 알고리즘 HW6 과제 중 2. Vertex Cover Algorithm 구현 입니다.
-// - Input : Graph
-// - Output : maximal matching에 의한 Edge의 집합 (단, Edge는 A-B, G-H의 형태로 표시)
+// File Name : Branch and Bound.java
+// Description : 알고리즘 HW7 과제 중 3. Branch and Bound Algorithm 구현 입니다.
+// - Input : 강의자료 Chapter 9-2, 10p의 그래프 (시작점 A 가정)
+// - Output : [A, B, E, C, D, A], 거리 = 16
+
 import java.util.*;
 
-public class BranchandBound {
+class BranchandBound {
 
-    static class Graph {
-        private Map<Integer, Set<Integer>> adjList;
+    static class Node {
+        List<Character> path;
+        int bound;
+        int cost;
+        char lastNode;
 
-        public Graph() {
-            adjList = new HashMap<>();
-        }
-
-        // Add edge to the graph 
-        public void addEdge(int u, int v) {
-            adjList.putIfAbsent(u, new HashSet<>());
-            adjList.putIfAbsent(v, new HashSet<>());
-            adjList.get(u).add(v);
-            adjList.get(v).add(u);
-        }
-
-        // vertices in the graph
-        public Set<Integer> getVertices() {
-            return adjList.keySet();
-        }
-
-        // all neighbors of a vertex
-        public Set<Integer> getNeighbors(int u) {
-            return adjList.getOrDefault(u, new HashSet<>());
-        }
-
-        // all edges in the graph 
-        public Set<String> getEdges() {
-            Set<String> edges = new HashSet<>();
-            for (int u : adjList.keySet()) {
-                for (int v : adjList.get(u)) {
-                    if (u < v) {
-                        edges.add((char)(u + 'A') + "-" + (char)(v + 'A'));
-                    }
-                }
-            }
-            return edges;
+        Node(List<Character> path, int cost, int bound, char lastNode) {
+            this.path = new ArrayList<>(path);
+            this.cost = cost;
+            this.bound = bound;
+            this.lastNode = lastNode;
         }
     }
 
-    // Maximal Matching using Greedy
-    public static Set<String> findMaximalMatching(Graph graph) {
-        Set<String> matching = new HashSet<>(); 
-        Set<Integer> visited = new HashSet<>();
-        
-        for (int u : graph.getVertices()) {
-            if (!visited.contains(u)) {
-                for (int v : graph.getNeighbors(u)) {
-                    if (!visited.contains(v)) {
-                        matching.add((char)(u + 'A') + "-" + (char)(v + 'A'));
-                        visited.add(u);
-                        visited.add(v);
-                        break; 
+    static Map<Character, Map<Character, Integer>> graph = new HashMap<>();
+    static int bestValue = Integer.MAX_VALUE;
+    static List<Character> bestSolution = new ArrayList<>();
+
+    static int calculateBound(Node node, Set<Character> remaining) {
+        int bound = node.cost;
+
+        // Add minimum outgoing edge for each remaining node
+        for (char city : remaining) {
+            int minEdge = Integer.MAX_VALUE;
+            for (Map.Entry<Character, Integer> neighbor : graph.get(city).entrySet()) {
+                minEdge = Math.min(minEdge, neighbor.getValue());
+            }
+            if (minEdge != Integer.MAX_VALUE) {
+                bound += minEdge;
+            }
+        }
+        return bound;
+    }
+
+    static void branchAndBoundTSP(char start) {
+        PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingInt(n -> n.bound)); // Search min Bound
+        List<Character> initialPath = new ArrayList<>();
+        initialPath.add(start);
+
+        Node root = new Node(initialPath, 0, calculateBound(new Node(initialPath, 0, 0, start), graph.keySet()), start);
+        pq.add(root);
+
+        while (!pq.isEmpty()) {
+            Node current = pq.poll();
+
+            if (current.bound >= bestValue) {
+                continue;
+            }
+
+            if (current.path.size() == graph.size()) {
+                current.path.add(start);
+                current.cost += graph.get(current.lastNode).get(start);
+                // find min
+                if (current.cost < bestValue) {
+                    bestValue = current.cost;
+                    bestSolution = current.path;
+                }
+                continue;
+            }
+
+            for (Map.Entry<Character, Integer> neighbor : graph.get(current.lastNode).entrySet()) {
+                char nextCity = neighbor.getKey();
+
+                if (!current.path.contains(nextCity)) {
+                    List<Character> newPath = new ArrayList<>(current.path);
+                    newPath.add(nextCity);
+                    int newCost = current.cost + neighbor.getValue();
+                    Set<Character> remaining = new HashSet<>(graph.keySet());
+                    remaining.removeAll(newPath);
+
+                    int newBound = calculateBound(new Node(newPath, newCost, 0, nextCity), remaining);
+
+                    if (newBound < bestValue) {
+                        pq.add(new Node(newPath, newCost, newBound, nextCity));
                     }
                 }
             }
         }
-        return matching;
     }
 
     public static void main(String[] args) {
-        Graph graph = new Graph();
+        // Initialize graph
+        graph.put('A', Map.of('B', 2, 'D', 3, 'C', 7));
+        graph.put('B', Map.of('A', 2, 'C', 3, 'D', 5, 'E', 6));
+        graph.put('C', Map.of('A', 7, 'B', 3, 'D', 4, 'E', 1));
+        graph.put('D', Map.of('A', 3, 'B', 5, 'C', 4, 'E', 9));
+        graph.put('E', Map.of('A', 10, 'B', 6, 'C', 1, 'D', 9));
 
-        // Input edges in input Gragh
-        graph.addEdge(0, 4);  // A-E
-        graph.addEdge(1, 2);  // B-C
-        graph.addEdge(1, 4);  // B-E
-        graph.addEdge(1, 5);  // B-F
-        graph.addEdge(1, 6);  // B-G
-        graph.addEdge(2, 3);  // C-D
-        graph.addEdge(3, 7);  // D-H
-        graph.addEdge(4, 8);  // E-I
-        graph.addEdge(4, 9);  // E-J
-        graph.addEdge(4, 5);  // E-F
-        graph.addEdge(5, 9);  // F-J
-        graph.addEdge(5, 6);  // F-G
-        graph.addEdge(6, 10); // G-K
-        graph.addEdge(6, 11); // G-L
-        graph.addEdge(7, 11); // H-L
-        graph.addEdge(8, 12); // I-M
-        graph.addEdge(8, 9);  // I-J
-        graph.addEdge(9, 12); // J-M
-        graph.addEdge(9, 13); // J-N
-        graph.addEdge(9, 14); // J-O
-        graph.addEdge(9, 10); // J-K
-        graph.addEdge(10, 14); // K-O
-        graph.addEdge(10, 11); // K-L
-        graph.addEdge(11, 15); // L-P
-        graph.addEdge(2, 7);  // C-H
-        graph.addEdge(3, 6);  // D-G
-        graph.addEdge(6, 9);  // G-J
-        graph.addEdge(6, 7);  // G-H
-        graph.addEdge(11, 14); // L-O
+        branchAndBoundTSP('A');
 
-        // Find the maximal matching
-        Set<String> maximalMatching = findMaximalMatching(graph);
-        
-        // Print result maximal matching
-        System.out.println("Maximal Matching:");
-        for (String edge : maximalMatching) {
-            System.out.println(edge);
-        }
+        System.out.println(bestSolution + ", 거리 = " + bestValue);
     }
 }
